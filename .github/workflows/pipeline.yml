@@ -1,5 +1,8 @@
 name: Terraform Pipeline
 
+env:
+  TF_WORKING_DIR: ././Modules/
+
 on:
   push:
     branches:
@@ -13,26 +16,41 @@ permissions:
   contents: read
 
 jobs:
-  terraformWorkflow:
+  # Stage 1 : Code Review || Fmt || Lint | Validate
+  terraformLint:
+    name: Code Review || Fmt || Lint | Validate
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v7.0.0
 
-      - name: Azure Login
-        uses: azure/login@v3
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
       - name: Terraform Setup
         uses: hashicorp/setup-terraform@v2.0.3
 
+      - name: Terraform Fmt Check
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform fmt -check -recursive
+
       - name: Terraform Init
         run: terraform init
-        working-directory: ././Modules/
-        
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+      - name: Terraform Validate
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform validate
+
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v6.3.0
+        with:
+          tflint_version: latest
+
+      - name: Run TFLint
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: |
+          tflint --init 
+          tflint -f compact --recursive
+
+
       - name: Outputs
-        run: echo "worked"
+        run: echo ${{ env.TF_WORKING_DIR }}
