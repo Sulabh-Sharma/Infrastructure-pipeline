@@ -2,6 +2,7 @@ name: Terraform Pipeline
 
 env:
   TF_WORKING_DIR: ././Modules/
+  TFLINT_WORKING_DIR: ././Environment/Dev
 
 on:
   push:
@@ -46,7 +47,7 @@ jobs:
           tflint_version: latest
 
       - name: Run TFLint
-        working-directory: ${{ env.TF_WORKING_DIR }}
+        working-directory: ${{ env.TFLINT_WORKING_DIR }}
         run: |
           tflint --init 
           tflint -f compact --recursive
