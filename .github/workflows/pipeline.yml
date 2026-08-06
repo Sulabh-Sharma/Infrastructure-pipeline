@@ -1,7 +1,7 @@
 name: Terraform Pipeline
 
 env:
-  TF_WORKING_DIR: ././Modules/
+  TF_WORKING_DIR: ././Environment/
 
 on:
   push:
