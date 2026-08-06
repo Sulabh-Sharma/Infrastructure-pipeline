@@ -1,7 +1,7 @@
 name: Terraform Pipeline
 
 env:
-  TF_WORKING_DIR: ././Environment/
+  TF_WORKING_DIR: ././Environment/Dev/
 
 on:
   push:
@@ -49,7 +49,7 @@ jobs:
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: |
           tflint --init 
-          tflint -f compact --recursive
+          tflint -f compact
 
 
       - name: Outputs
