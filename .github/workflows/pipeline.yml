@@ -30,7 +30,7 @@ jobs:
 
       - name: Terraform Fmt Check
         working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform fmt --recursive
+        run: terraform fmt -check -recursive
 
       - name: Terraform Init
         run: terraform init
