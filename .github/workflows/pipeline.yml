@@ -1,7 +1,7 @@
 name: Terraform Pipeline
 
 env:
-  TF_WORKING_DIR: ././Environment/Dev/
+  TF_WORKING_DIR: ././Modules/
 
 on:
   push:
@@ -30,7 +30,7 @@ jobs:
 
       - name: Terraform Fmt Check
         working-directory: ${{ env.TF_WORKING_DIR }}
-        run: terraform fmt -recursive ./Environment/Dev
+        run: terraform fmt --recursive
 
       - name: Terraform Init
         run: terraform init
@@ -49,7 +49,7 @@ jobs:
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: |
           tflint --init 
-          tflint -f compact
+          tflint -f compact --recursive
 
 
       - name: Outputs
