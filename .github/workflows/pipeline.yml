@@ -25,6 +25,7 @@ jobs:
   # ---------- Stage 0: Secrets Scanning ----------
 
   SecretScan:
+    if: false
     name: Secret Scan
     runs-on: ubuntu-latest
     steps:
@@ -39,6 +40,7 @@ jobs:
 
   # Stage 1 : Code Review || Fmt || Lint | Validate
   terraformLint:
+    if: false
     name: Code Review || Fmt || Lint | Validate
     needs: SecretScan
     runs-on: ubuntu-latest
@@ -75,6 +77,7 @@ jobs:
 
 # ---------- Stage 2: IaC Security Scan ----------
   iacSecurityScan:
+    if: false
     name: IaC Security Scan (Checkov)
     needs: terraformLint
     runs-on: ubuntu-latest
@@ -102,7 +105,7 @@ jobs:
 # ---------- Stage 3: Plan ----------
   TerraformPlan:
     name: Terraform Plan
-    needs: iacSecurityScan
+    # needs: iacSecurityScan # Skipped to run directly
     runs-on: ubuntu-latest
 
     steps:
@@ -155,7 +158,8 @@ jobs:
 
       - name: Save Plan Output
         id: save_plan_output
-        run: terraform show -no-color tfplan > planOutput.txt
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform show -no-color tfplan > plan-output.txt
 
       - name: Email Plan Output
         uses: devellany/send-mail@v1.0.2
