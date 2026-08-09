@@ -25,7 +25,6 @@ jobs:
   # ---------- Stage 0: Secrets Scanning ----------
 
   SecretScan:
-    if: false
     name: Secret Scan
     runs-on: ubuntu-latest
     steps:
@@ -40,7 +39,6 @@ jobs:
 
   # Stage 1 : Code Review || Fmt || Lint | Validate
   terraformLint:
-    if: false
     name: Code Review || Fmt || Lint | Validate
     needs: SecretScan
     runs-on: ubuntu-latest
@@ -77,7 +75,6 @@ jobs:
 
 # ---------- Stage 2: IaC Security Scan ----------
   iacSecurityScan:
-    if: false
     name: IaC Security Scan (Checkov)
     needs: terraformLint
     runs-on: ubuntu-latest
@@ -104,9 +101,8 @@ jobs:
 
 # ---------- Stage 3: Plan ----------
   TerraformPlan:
-    if: always()
     name: Terraform Plan
-    needs: iacSecurityScan # Skipped to run directly
+    needs: iacSecurityScan
     runs-on: ubuntu-latest
 
     steps:
