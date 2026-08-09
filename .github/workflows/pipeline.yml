@@ -13,7 +13,8 @@ on:
   pull_request:
     branches:
       - 'main'
-      
+
+   
 permissions: 
   id-token: write
   contents: read
@@ -103,6 +104,7 @@ jobs:
     name: Terraform Plan
     needs: iacSecurityScan
     runs-on: ubuntu-latest
+    environment: Dev
 
     steps:
       - name: Checkout Code
