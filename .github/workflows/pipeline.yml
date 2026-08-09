@@ -137,7 +137,7 @@ jobs:
           infracost-api-key: ${{ secrets.INFRACOST_API_KEY }}
 
       - name: Generate Infracost cost diff
-        working-directory: ${{ env.TFInfracost_WORKING_DIR }}
+        working-directory: ${{ env.TF_WORKING_DIR }}
         run: |
           terraform show -json tfplan > plan.json
           infracost breakdown --path plan.json --format json --out-file /tmp/infracost.json
