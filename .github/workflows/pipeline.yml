@@ -104,6 +104,7 @@ jobs:
 
 # ---------- Stage 3: Plan ----------
   TerraformPlan:
+    if: always()
     name: Terraform Plan
     needs: iacSecurityScan # Skipped to run directly
     runs-on: ubuntu-latest
