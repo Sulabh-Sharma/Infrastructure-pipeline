@@ -17,6 +17,8 @@ on:
 permissions: 
   id-token: write
   contents: read
+  security-events: write
+  actions: read
 
 jobs:
   # ---------- Stage 0: Secrets Scanning ----------
