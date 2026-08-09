@@ -130,10 +130,10 @@ jobs:
 
 
       - name: Setup Infracost
-        uses: infracost/actions@v4.2.0
+        uses: manmohanmirkar123/cloud-cost-estimator-action@v1.0.1
         with:
-          api-key: ${{ secrets.INFRACOST_API_KEY }}
-          path: ${{ env.TFInfracost_WORKING_DIR }}
+          iac-path: ${{ env.TFInfracost_WORKING_DIR }}
+          infracost-api-key: ${{ secrets.INFRACOST_API_KEY }}
 
       - name: Generate Infracost cost diff
         working-directory: ${{ env.TFInfracost_WORKING_DIR }}
