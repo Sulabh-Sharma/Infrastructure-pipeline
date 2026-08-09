@@ -105,7 +105,7 @@ jobs:
 # ---------- Stage 3: Plan ----------
   TerraformPlan:
     name: Terraform Plan
-    # needs: iacSecurityScan # Skipped to run directly
+    needs: iacSecurityScan # Skipped to run directly
     runs-on: ubuntu-latest
 
     steps:
@@ -162,21 +162,19 @@ jobs:
         run: terraform show -no-color tfplan > plan-output.txt
 
       - name: Email Plan Output
-        uses: devellany/send-mail@v1.0.2
+        uses: dawidd6/action-send-mail@v3
         with:
-          host: smtp.gmail.com
-          port: 465 
-          account: ${{ secrets.MAIL_USERNAME }}
+          server_address: smtp.gmail.com
+          server_port: 465 
+          username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
-          sender: GitHub Actions
-          from: ${{ secrets.MAIL_USERNAME }}
-          to: ${{ secrets.MAIL_TO }}
           subject: "Terraform Plan — ${{ github.repository }} (${{ github.ref_name }})"
+          to: ${{ secrets.MAIL_TO }}
+          from: GitHub Actions <${{ secrets.MAIL_USERNAME }}>
           body: |
             Terraform plan completed for ${{ github.repository }} on branch ${{ github.ref_name }}.
             Commit: ${{ github.sha }}
             Triggered by: ${{ github.actor }}
  
             See attached for the full plan output.
-          contentType: text/plain
-          attachments: file://${{ env.TF_WORKING_DIR }}/plan-output.txt
+          attachments: ${{ env.TF_WORKING_DIR }}/plan-output.txt
