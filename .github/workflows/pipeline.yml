@@ -100,7 +100,6 @@ jobs:
           
 
 # ---------- Stage 3: Plan ----------
-  
   TerraformPlan:
     name: Terraform Plan
     needs: iacSecurityScan
