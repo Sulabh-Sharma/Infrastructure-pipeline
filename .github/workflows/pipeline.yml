@@ -132,7 +132,8 @@ jobs:
       - name: Setup Infracost
         uses: manmohanmirkar123/cloud-cost-estimator-action@v1.0.1
         with:
-          iac-path: ${{ env.TFInfracost_WORKING_DIR }}
+          provider: azure
+          iac-path: ${{ env.TF_WORKING_DIR }}
           infracost-api-key: ${{ secrets.INFRACOST_API_KEY }}
 
       - name: Generate Infracost cost diff
