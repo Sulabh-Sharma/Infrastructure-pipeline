@@ -8,7 +8,7 @@ env:
 on:
   push:
     branches:
-      - 'feature/**'
+      - "**"
 
   pull_request:
     branches:
@@ -104,7 +104,6 @@ jobs:
     name: Terraform Plan
     needs: iacSecurityScan
     runs-on: ubuntu-latest
-    environment: Dev
 
     steps:
       - name: Checkout Code
