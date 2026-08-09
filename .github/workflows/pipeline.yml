@@ -31,7 +31,7 @@ jobs:
           fetch-depth: 0
       
       - name: Gitleaks
-        uses: DariuszPorowski/github-action-gitleaks@v2.1.0
+        uses: gacts/gitleaks@v1.3.2
         
 
   # Stage 1 : Code Review || Fmt || Lint | Validate
