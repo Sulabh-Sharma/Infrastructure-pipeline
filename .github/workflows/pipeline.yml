@@ -1,25 +1,43 @@
 name: Terraform Pipeline
 
 env:
-  TF_WORKING_DIR: .
+  TF_WORKING_DIR: ././Environment/Dev
   TFLINT_WORKING_DIR: ././Environment/Dev
+  TFInfracost_WORKING_DIR: .
 
 on:
   push:
     branches:
-      - main
+      - 'feature/**'
 
   pull_request:
     branches:
-      - main
+      - 'main'
+      
 permissions: 
   id-token: write
   contents: read
 
 jobs:
+  # ---------- Stage 0: Secrets Scanning ----------
+
+  SecretScan:
+    name: Secret Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7.0.0
+        with:
+          fetch-depth: 0
+      
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2.3.4
+        
+
   # Stage 1 : Code Review || Fmt || Lint | Validate
   terraformLint:
     name: Code Review || Fmt || Lint | Validate
+    needs: SecretScan
     runs-on: ubuntu-latest
 
     steps:
@@ -52,6 +70,103 @@ jobs:
           tflint --init 
           tflint -f compact --recursive
 
+# ---------- Stage 2: IaC Security Scan ----------
+  iacSecurityScan:
+    name: IaC Security Scan (Checkov)
+    needs: terraformLint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7.0.0
 
-      - name: Outputs
-        run: echo ${{ env.TF_WORKING_DIR }}
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@v12.1347.0
+        with:
+          directory: .
+          framework: terraform
+          output_format: sarif
+          soft_fail: false
+          quiet: true
+          hard_fail_on: critical,high,medium
+
+      - name: Upload SARIF to GitHub Security tab
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
+          
+
+# ---------- Stage 3: Plan ----------
+  TerraformPlan:
+    name: Terraform Plan
+    needs: iacSecurityScan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7.0.0
+
+      - name: Terraform Setup
+        uses: hashicorp/setup-terraform@v2.0.3
+
+      # Azure OIDC auth (federated credential — no client secret needed)
+      - name: Azure Login
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          
+      - name : Terraform Init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform init      
+
+      - name: Terraform Plan
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform plan -out=tfplan -input=false
+
+
+      - name: Setup Infracost
+        uses: infracost/actions@v4.2.0
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+          path: ${{ env.TFInfracost_WORKING_DIR }}
+
+      - name: Generate Infracost cost diff
+        working-directory: ${{ env.TFInfracost_WORKING_DIR }}
+        run: |
+          terraform show -json tfplan > plan.json
+          infracost breakdown --path plan.json --format json --out-file /tmp/infracost.json
+      
+      - name: Upload a Plan Artifact
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: tfplan
+          path: ${{ env.TF_WORKING_DIR }}/tfplan
+          retention-days: 1
+          overwrite: true
+          include-hidden-files: true
+
+      - name: Save Plan Output
+        id: save_plan_output
+        run: terraform show -no-color tfplan > planOutput.txt
+
+      - name: Email Plan Output
+        uses: devellany/send-mail@v1.0.2
+        with:
+          host: smtp.gmail.com
+          port: 465 
+          account: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          sender: GitHub Actions
+          from: ${{ secrets.MAIL_USERNAME }}
+          to: ${{ secrets.MAIL_TO }}
+          subject: "Terraform Plan — ${{ github.repository }} (${{ github.ref_name }})"
+          body: |
+            Terraform plan completed for ${{ github.repository }} on branch ${{ github.ref_name }}.
+            Commit: ${{ github.sha }}
+            Triggered by: ${{ github.actor }}
+ 
+            See attached for the full plan output.
+          contentType: text/plain
+          attachments: file://${{ env.TF_WORKING_DIR }}/plan-output.txt
