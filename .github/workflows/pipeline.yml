@@ -1,8 +1,8 @@
 name: Terraform Pipeline
 
 env:
-  TF_WORKING_DIR: ././Environment/Dev
-  TFLINT_WORKING_DIR: ././Environment/Dev
+  TF_WORKING_DIR: Environment/Dev
+  TFLINT_WORKING_DIR: Environment/Dev
   TFInfracost_WORKING_DIR: .
 
 on:
